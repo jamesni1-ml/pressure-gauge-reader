@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ML artifacts
+*.pt
+*.pth
+*.onnx
+*.ncnn
+*.engine
+*.tflite
+runs/
+wandb/
+
+# Dataset (download separately)
+dataset/
+*.zip
+
+# Results (generated)
+results/
+exports/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+
+# Environment
+.env
+*.log
