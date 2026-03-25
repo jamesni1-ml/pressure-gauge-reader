@@ -1,8 +1,37 @@
 # Analog Pressure Gauge Reader
 
-**Fully automatic analog pressure gauge reading using computer vision.**
+**Fully automatic analog pressure gauge reading using computer vision and edge AI.**
 
-YOLOv8n detects the gauge face → OpenCV corrects perspective from any camera angle → EasyOCR reads the scale numbers → classical CV detects the needle → math converts the angle to a pressure reading. Zero manual calibration — point at any gauge, get a reading.
+## What This Project Does
+
+This project reads analog (dial-type) pressure gauges from photographs -- automatically, with no manual calibration or setup per gauge. You take a photo of any analog pressure gauge, and the system returns the numeric pressure reading.
+
+The entire inference pipeline runs on a **Raspberry Pi 4** -- a small, low-cost single-board computer sitting at the point of data collection. This is what's meant by **"ML/AI at the edge"**: instead of sending images to a cloud server for processing, the machine learning model and all the computer vision logic run locally on the device itself. That means no internet connection required, no cloud costs, no data leaving the facility, and near-instant results.
+
+### Why This Matters
+
+Many industrial environments still use analog pressure gauges. Reading hundreds of them manually is slow, error-prone, and expensive. Replacing them all with digital sensors is often impractical (cost, downtime, certification). This project bridges that gap: a technician (or mounted camera) takes photos of the gauges, drops them on the Pi, and gets a CSV of all the readings.
+
+### How It Works (The Short Version)
+
+The pipeline chains together a trained deep learning model and classical computer vision:
+
+1. **YOLOv8n** (a small, fast object detection neural network) finds the gauge face in the photo
+2. **Perspective correction** fixes distortion if the photo was taken at an angle (the gauge face looks like an ellipse instead of a circle -- OpenCV warps it back to circular)
+3. **EasyOCR** reads the printed numbers on the gauge scale and figures out their angular positions around the dial
+4. **Needle detection** isolates the gauge needle using color filtering and line detection, then measures its angle
+5. **Angle-to-reading conversion** maps where the needle is pointing onto the OCR-derived number scale, using interpolation between the detected scale markings
+
+**No calibration is needed.** Every image is fully self-contained -- the system reads the scale from the image itself via OCR, so it works on any gauge regardless of manufacturer, range, or unit. If the numbers on the dial are legible in the photo, the pipeline can read them.
+
+### Training vs. Deployment (Two Separate Machines)
+
+This is a common pattern in edge AI:
+
+- **Training** happens on a powerful machine (your workstation with a GPU, running WSL Ubuntu). This is where you train the YOLOv8n model on a dataset of gauge images. Training is compute-heavy but only done once. The output is a small `.onnx` model file (~6 MB).
+- **Deployment** happens on the Raspberry Pi. You copy the trained model and the inference script to the Pi. The Pi uses OpenCV's DNN module to run the ONNX model -- no PyTorch or GPU needed. EasyOCR runs on the Pi's CPU as well. The Pi processes photos in batch and outputs a CSV.
+
+You do **not** need the training environment on the Pi, and you do **not** need a Pi to train the model.
 
 ## Architecture
 
